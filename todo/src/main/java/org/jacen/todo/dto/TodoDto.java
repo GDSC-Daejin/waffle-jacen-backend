@@ -8,7 +8,6 @@ public class TodoDto {
   private String title;
   private String content;
   private Boolean completed;
-  private Integer todo_version;
 
   private LocalDateTime createdDate;
 
@@ -16,12 +15,11 @@ public class TodoDto {
 
   public TodoDto() {}
 
-  public TodoDto(String id, String title, String content, Boolean completed, Integer todo_version, LocalDateTime createdDate, LocalDateTime updatedDate) {
+  public TodoDto(String id, String title, String content, Boolean completed, LocalDateTime createdDate, LocalDateTime updatedDate) {
     this.id = id;
     this.title = title;
     this.content = content;
     this.completed = completed;
-    this.todo_version = todo_version;
     this.createdDate = createdDate;
     this.updatedDate = updatedDate;
   }
@@ -43,12 +41,6 @@ public class TodoDto {
   }
   public void setTitle(String title) {
     this.title = title;
-  }
-  public Integer getTodo_version() {
-    return todo_version;
-  }
-  public void setTodo_version(Integer todo_version) {
-    this.todo_version = todo_version;
   }
 
   public String getId() {

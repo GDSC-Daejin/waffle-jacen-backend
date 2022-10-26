@@ -8,8 +8,35 @@ import org.jacen.todo.model.Todo;
 import org.jacen.todo.service.TodoService;
 import org.jacen.todo.utils.ObjectMapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+class APIResponse<T> {
+    private Boolean success;
+    private T data;
+
+    public APIResponse(Boolean success, T data) {
+        this.success = success;
+        this.data = data;
+    }
+
+    public Boolean getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(Boolean success) {
+        this.success = success;
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public void setData(T data) {
+        this.data = data;
+    }
+}
 
 @RestController
 public class TodoController {
@@ -18,36 +45,48 @@ public class TodoController {
     private TodoService repository;
 
     // 투두 리스트를 가져오기
-    // TODO : 페이징 구현
-    // @RequestParam(value = "page", required = false, defaultValue = "1") Integer page
     @GetMapping("/todo/list")
-    public List<TodoDto> list() {
-        return ObjectMapperUtils.mapAll(repository.findAll(), TodoDto.class);
+    public APIResponse<List<TodoDto>> list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return new APIResponse(true, ObjectMapperUtils.mapAll(repository.findByPage(pageable).getContent(), TodoDto.class));
     }
 
     // id로 투두 세부정보 가져오기
     @GetMapping("/todo/{id}")
-    public TodoDto getTodoById(@PathVariable String id) {
+    public APIResponse<TodoDto> getTodoById(@PathVariable String id) {
         Optional<Todo> todo = repository.findById(id);
-        return todo.map(value -> ObjectMapperUtils.map(value, TodoDto.class)).orElse(null);
+        return todo.map(value -> new APIResponse(true, ObjectMapperUtils.map(value, TodoDto.class))).orElseGet(() -> new APIResponse(false, null));
     }
 
     // 투두 추가
     @PostMapping("/todo")
-    public TodoDto postMethodName(@RequestBody Todo entity) {
-        return ObjectMapperUtils.map(repository.addTodo(entity), TodoDto.class);
+    public APIResponse<TodoDto> postMethodName(@RequestBody TodoDto todo) {
+        Todo todoEntity = ObjectMapperUtils.map(todo, Todo.class);
+        System.out.println(todoEntity);
+        return new APIResponse(true, ObjectMapperUtils.map(repository.addTodo(todoEntity), TodoDto.class));
     }
 
     // 투두 수정
     @PutMapping("/todo/{id}")
-    public TodoDto updateTodoById(@PathVariable String id, @RequestBody TodoDto todo) {
-        return ObjectMapperUtils.map(repository.updateById(id, ObjectMapperUtils.map(todo, Todo.class)), TodoDto.class);
+    public APIResponse<TodoDto> updateTodoById(@PathVariable String id, @RequestBody TodoDto todo) {
+        try {
+            todo.setId(id);
+            Todo entity = ObjectMapperUtils.map(todo, Todo.class);
+            System.out.println(entity);
+            return new APIResponse(true, ObjectMapperUtils.map(repository.updateById(id, entity), TodoDto.class));
+        } catch (Exception e) {
+            return new APIResponse(false, null);
+        }
     }
 
     // 투두 삭제
     @DeleteMapping("/todo/{id}")
-    public String deleteTodoById(@PathVariable String id) {
-        repository.deleteById(id);
-        return "Deleted";
+    public APIResponse deleteTodoById(@PathVariable String id) {
+        try {
+            repository.deleteById(id);
+            return new APIResponse(true, null);
+        } catch (Exception e) {
+            System.out.println(e);
+            return new APIResponse(false, null);
+        }
     }
 }

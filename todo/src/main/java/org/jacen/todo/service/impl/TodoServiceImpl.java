@@ -1,14 +1,12 @@
 package org.jacen.todo.service.impl;
 
-import java.util.List;
 import java.util.Optional;
-
-import org.jacen.todo.dto.TodoDto;
 import org.jacen.todo.model.Todo;
 import org.jacen.todo.repository.TodoRepository;
 import org.jacen.todo.service.TodoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,30 +16,44 @@ public class TodoServiceImpl implements TodoService {
     TodoRepository repository;
 
     @Override
-    public List<Todo> findAll() {
-        return repository.findAll();
-    }
-
-    @Override
     public Optional<Todo> findById(String id) {
         return repository.findById(id);
     }
 
     @Override
     public Todo addTodo(Todo todo) {
+        if(todo.getTitle() == null) throw new IllegalArgumentException("Title is required");
+        if(todo.getCompleted() == null)
+            todo.setCompleted(false);
+        if(todo.getContent() == null)
+            todo.setContent("");
         return repository.insert(todo);
     }
 
     @Override
-    public Optional<Todo> updateById(String id, Todo todo) {
-        if (repository.existsById(id)) {
-            return Optional.of(repository.save(todo));
+    public Todo updateById(String id, Todo todo) {
+        Optional<Todo> todoOptional = repository.findById(id);
+        if (todoOptional.isPresent()) {
+            Todo todoFromDb = todoOptional.get();
+            if(todo.getTitle() != null) {
+                todoFromDb.setTitle(todo.getTitle());
+            }
+            if(todo.getCompleted() != null) {
+                todoFromDb.setCompleted(todo.getCompleted());
+            }
+            if(todo.getContent() != null) {
+                todoFromDb.setContent(todo.getContent());
+            }
+            return repository.save(todoFromDb);
         }
-        return Optional.empty();
+        return null;
     }
 
     @Override
     public void deleteById(String id) {
         repository.deleteById(id);
     }
+
+    @Override
+    public Page<Todo> findByPage(Pageable pageable) { return repository.findAll(pageable); }
 }

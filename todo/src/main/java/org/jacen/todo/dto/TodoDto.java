@@ -1,6 +1,6 @@
 package org.jacen.todo.dto;
 
-import org.springframework.data.annotation.Id;
+import java.time.LocalDateTime;
 
 public class TodoDto {
 
@@ -10,13 +10,20 @@ public class TodoDto {
   private Boolean completed;
   private Integer todo_version;
 
+  private LocalDateTime createdDate;
+
+  private LocalDateTime updatedDate;
+
   public TodoDto() {}
-  public TodoDto(String id, String title, String content, Boolean completed, Integer todo_version) {
+
+  public TodoDto(String id, String title, String content, Boolean completed, Integer todo_version, LocalDateTime createdDate, LocalDateTime updatedDate) {
     this.id = id;
     this.title = title;
     this.content = content;
     this.completed = completed;
     this.todo_version = todo_version;
+    this.createdDate = createdDate;
+    this.updatedDate = updatedDate;
   }
 
   public Boolean getCompleted() {
@@ -50,5 +57,21 @@ public class TodoDto {
 
   public void setId(String id) {
     this.id = id;
+  }
+
+  public LocalDateTime getCreatedDate() {
+    return createdDate;
+  }
+
+  public void setCreatedDate(LocalDateTime createdDate) {
+    this.createdDate = createdDate;
+  }
+
+  public LocalDateTime getUpdatedDate() {
+    return updatedDate;
+  }
+
+  public void setUpdatedDate(LocalDateTime updatedDate) {
+    this.updatedDate = updatedDate;
   }
 }

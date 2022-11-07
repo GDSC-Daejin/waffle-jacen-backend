@@ -3,6 +3,7 @@ package org.jacen.todo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.jacen.todo.dto.PagedTodoDto;
 import org.jacen.todo.dto.TodoDto;
 import org.jacen.todo.model.Todo;
 import org.jacen.todo.service.TodoService;
@@ -36,48 +37,6 @@ class APIResponse<T> {
 
     public void setData(T data) {
         this.data = data;
-    }
-}
-
-class Paging {
-    private Integer total_pages;
-    private Integer current_page;
-    private Boolean is_last_page;
-
-    public Paging(Integer total_pages, Integer current_page, Boolean is_last_page) {
-        this.total_pages = total_pages;
-        this.current_page = current_page;
-        this.is_last_page = is_last_page;
-    }
-
-    public Integer getTotal_pages() {
-        return total_pages;
-    }
-
-    public Integer getCurrent_page() {
-        return current_page;
-    }
-
-    public Boolean getIs_last_page() {
-        return is_last_page;
-    }
-}
-
-class PagedTodoDto {
-    private List<TodoDto> todos;
-    private Paging paging;
-
-    public PagedTodoDto(Page<Todo> todos) {
-        this.todos = ObjectMapperUtils.mapAll(todos.getContent(), TodoDto.class);
-        this.paging = new Paging(todos.getTotalPages(), todos.getNumber() + 1, todos.isLast());
-    }
-
-    public List<TodoDto> getTodos() {
-        return todos;
-    }
-
-    public Paging getPaging() {
-        return paging;
     }
 }
 

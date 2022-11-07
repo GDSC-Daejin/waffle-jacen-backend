@@ -8,6 +8,7 @@ import org.jacen.todo.model.Todo;
 import org.jacen.todo.service.TodoService;
 import org.jacen.todo.utils.ObjectMapperUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +39,48 @@ class APIResponse<T> {
     }
 }
 
+class Paging {
+    private Integer total_pages;
+    private Integer current_page;
+    private Boolean is_last_page;
+
+    public Paging(Integer total_pages, Integer current_page, Boolean is_last_page) {
+        this.total_pages = total_pages;
+        this.current_page = current_page;
+        this.is_last_page = is_last_page;
+    }
+
+    public Integer getTotal_pages() {
+        return total_pages;
+    }
+
+    public Integer getCurrent_page() {
+        return current_page;
+    }
+
+    public Boolean getIs_last_page() {
+        return is_last_page;
+    }
+}
+
+class PagedTodoDto {
+    private List<TodoDto> todos;
+    private Paging paging;
+
+    public PagedTodoDto(Page<Todo> todos) {
+        this.todos = ObjectMapperUtils.mapAll(todos.getContent(), TodoDto.class);
+        this.paging = new Paging(todos.getTotalPages(), todos.getNumber() + 1, todos.isLast());
+    }
+
+    public List<TodoDto> getTodos() {
+        return todos;
+    }
+
+    public Paging getPaging() {
+        return paging;
+    }
+}
+
 @RestController
 public class TodoController {
 
@@ -46,28 +89,29 @@ public class TodoController {
 
     // 투두 리스트를 가져오기
     @GetMapping("/todo/list")
-    public APIResponse<List<TodoDto>> list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse(true, ObjectMapperUtils.mapAll(repository.findByPage(pageable).getContent(), TodoDto.class));
+    public APIResponse list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return new APIResponse(true, new PagedTodoDto(repository.findByPage(pageable)));
     }
 
     // id로 투두 세부정보 가져오기
     @GetMapping("/todo/{id}")
-    public APIResponse<TodoDto> getTodoById(@PathVariable String id) {
+    public APIResponse getTodoById(@PathVariable String id) {
         Optional<Todo> todo = repository.findById(id);
-        return todo.map(value -> new APIResponse(true, ObjectMapperUtils.map(value, TodoDto.class))).orElseGet(() -> new APIResponse(false, null));
+        return todo.map(value -> new APIResponse(true, ObjectMapperUtils.map(value, TodoDto.class)))
+                .orElseGet(() -> new APIResponse(false, null));
     }
 
     // 투두 추가
     @PostMapping("/todo")
-    public APIResponse<TodoDto> postMethodName(@RequestBody TodoDto todo) {
+    public APIResponse<Object> postMethodName(@RequestBody TodoDto todo) {
         Todo todoEntity = ObjectMapperUtils.map(todo, Todo.class);
         System.out.println(todoEntity);
-        return new APIResponse(true, ObjectMapperUtils.map(repository.addTodo(todoEntity), TodoDto.class));
+        return new APIResponse<>(true, ObjectMapperUtils.map(repository.addTodo(todoEntity), TodoDto.class));
     }
 
     // 투두 수정
     @PutMapping("/todo/{id}")
-    public APIResponse<TodoDto> updateTodoById(@PathVariable String id, @RequestBody TodoDto todo) {
+    public APIResponse updateTodoById(@PathVariable String id, @RequestBody TodoDto todo) {
         try {
             todo.setId(id);
             Todo entity = ObjectMapperUtils.map(todo, Todo.class);

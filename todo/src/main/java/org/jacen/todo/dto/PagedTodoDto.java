@@ -36,7 +36,7 @@ public class PagedTodoDto {
 
     public PagedTodoDto(Page<Todo> todos) {
         this.todos = ObjectMapperUtils.mapAll(todos.getContent(), TodoDto.class);
-        this.paging = new Paging(todos.getTotalPages(), todos.getNumber() + 1, todos.isLast());
+        this.paging = new Paging(todos.getTotalPages(), todos.getNumber(), todos.isLast());
     }
 
     public List<TodoDto> getTodos() {

@@ -52,7 +52,7 @@ public class TodoController {
     // 투두 리스트를 가져오기
     @GetMapping("/todo/list")
     public APIResponse list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsFalseAndCompletedIsFalse(pageable)));
+        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsFalse(pageable)));
     }
 
     // id로 투두 세부정보 가져오기

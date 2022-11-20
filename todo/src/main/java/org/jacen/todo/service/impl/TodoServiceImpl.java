@@ -55,5 +55,22 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Page<Todo> findByPage(Pageable pageable) { return repository.findAll(pageable); }
+    public Page<Todo> findByPage(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
+    @Override
+    public Page<Todo> findByDeletedIsTrue(Pageable pageable) {
+        return repository.findByDeletedIsTrue(pageable);
+    }
+
+    @Override
+    public Page<Todo> findByDeletedIsFalse(Pageable pageable) {
+        return repository.findByDeletedIsFalse(pageable);
+    }
+
+    @Override
+    public Page<Todo> findByDeletedIsFalseAndCompletedIsFalse(Pageable pageable) {
+        return repository.findByDeletedIsFalseAndCompletedIsFalse(pageable);
+    }
 }

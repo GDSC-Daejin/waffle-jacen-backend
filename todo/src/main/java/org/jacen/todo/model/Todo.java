@@ -16,6 +16,8 @@ public class Todo {
 	private String content;
 	private Boolean completed;
 
+	private Boolean deleted;
+
 	@CreatedDate
 	private LocalDateTime createdDate;
 

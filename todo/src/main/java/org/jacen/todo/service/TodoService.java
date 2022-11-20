@@ -19,4 +19,9 @@ public interface TodoService {
     void deleteById(String id);
 
     Page<Todo> findByPage(Pageable pageable);
+
+    Page<Todo> findByDeletedIsTrue(Pageable pageable);
+    Page<Todo> findByDeletedIsFalse(Pageable pageable);
+
+    Page<Todo> findByDeletedIsFalseAndCompletedIsFalse(Pageable pageable);
 }

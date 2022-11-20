@@ -43,13 +43,16 @@ class APIResponse<T> {
 @RestController
 public class TodoController {
 
-    @Autowired
-    private TodoService repository;
+    private final TodoService repository;
+
+    public TodoController(TodoService repository) {
+        this.repository = repository;
+    }
 
     // 투두 리스트를 가져오기
     @GetMapping("/todo/list")
     public APIResponse list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse(true, new PagedTodoDto(repository.findByPage(pageable)));
+        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsFalseAndCompletedIsFalse(pageable)));
     }
 
     // id로 투두 세부정보 가져오기

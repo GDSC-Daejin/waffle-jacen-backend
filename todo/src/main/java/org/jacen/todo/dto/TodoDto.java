@@ -9,17 +9,20 @@ public class TodoDto {
   private String content;
   private Boolean completed;
 
+  private Boolean deleted;
+
   private LocalDateTime createdDate;
 
   private LocalDateTime updatedDate;
 
   public TodoDto() {}
 
-  public TodoDto(String id, String title, String content, Boolean completed, LocalDateTime createdDate, LocalDateTime updatedDate) {
+  public TodoDto(String id, String title, String content, Boolean completed, Boolean deleted, LocalDateTime createdDate, LocalDateTime updatedDate) {
     this.id = id;
     this.title = title;
     this.content = content;
     this.completed = completed;
+    this.deleted = deleted;
     this.createdDate = createdDate;
     this.updatedDate = updatedDate;
   }
@@ -65,5 +68,9 @@ public class TodoDto {
 
   public void setUpdatedDate(LocalDateTime updatedDate) {
     this.updatedDate = updatedDate;
+  }
+
+  public Boolean getDeleted() {
+    return deleted;
   }
 }

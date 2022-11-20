@@ -1,5 +1,6 @@
 package org.jacen.todo.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import org.jacen.todo.model.Todo;
 import org.jacen.todo.repository.TodoRepository;
@@ -12,8 +13,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class TodoServiceImpl implements TodoService {
 
-    @Autowired
-    TodoRepository repository;
+    private final TodoRepository repository;
+
+    public TodoServiceImpl(TodoRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public Optional<Todo> findById(String id) {
@@ -23,10 +27,10 @@ public class TodoServiceImpl implements TodoService {
     @Override
     public Todo addTodo(Todo todo) {
         if(todo.getTitle() == null) throw new IllegalArgumentException("Title is required");
-        if(todo.getCompleted() == null)
-            todo.setCompleted(false);
-        if(todo.getContent() == null)
-            todo.setContent("");
+        if(todo.getContent() == null) todo.setContent("");
+        todo.setCreatedDate(LocalDateTime.now());
+        todo.setUpdatedDate(LocalDateTime.now());
+        todo.setCompleted(false);
         return repository.insert(todo);
     }
 
@@ -44,6 +48,7 @@ public class TodoServiceImpl implements TodoService {
             if(todo.getContent() != null) {
                 todoFromDb.setContent(todo.getContent());
             }
+            todoFromDb.setUpdatedDate(LocalDateTime.now());
             return repository.save(todoFromDb);
         }
         return null;

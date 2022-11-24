@@ -24,13 +24,16 @@ public class Todo {
 	@LastModifiedDate
 	private LocalDateTime updatedDate;
 
+	private LocalDateTime deletedDate;
+
 	public Todo() {}
-	public Todo(String title, String content, Boolean completed, LocalDateTime createdDate, LocalDateTime updatedDate) {
+	public Todo(String title, String content, Boolean completed, LocalDateTime createdDate, LocalDateTime updatedDate, LocalDateTime deletedDate) {
 		this.title = title;
 		this.content = content;
 		this.completed = completed;
 		this.createdDate = createdDate;
 		this.updatedDate = updatedDate;
+		this.deletedDate = deletedDate;
 	}
 
 
@@ -79,5 +82,21 @@ public class Todo {
 
 	public void setUpdatedDate(LocalDateTime updatedDate) {
 		this.updatedDate = updatedDate;
+	}
+
+    public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
+    }
+
+	public Boolean getDeleted() {
+		return deleted;
+	}
+
+	public LocalDateTime getDeletedDate() {
+		return deletedDate;
+	}
+
+	public void setDeletedDate(LocalDateTime deletedDate) {
+		this.deletedDate = deletedDate;
 	}
 }

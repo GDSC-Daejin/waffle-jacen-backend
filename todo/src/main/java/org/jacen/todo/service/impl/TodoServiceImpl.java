@@ -31,6 +31,7 @@ public class TodoServiceImpl implements TodoService {
         todo.setCreatedDate(LocalDateTime.now());
         todo.setUpdatedDate(LocalDateTime.now());
         todo.setCompleted(false);
+        todo.setDeleted(false);
         return repository.insert(todo);
     }
 

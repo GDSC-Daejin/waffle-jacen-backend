@@ -14,6 +14,7 @@ public class TodoDto {
   private LocalDateTime createdDate;
 
   private LocalDateTime updatedDate;
+  private LocalDateTime deletedDate;
 
   public TodoDto() {}
 
@@ -72,5 +73,15 @@ public class TodoDto {
 
   public Boolean getDeleted() {
     return deleted;
+  }
+
+  public void setDeleted(Boolean deleted) { this.deleted = deleted; }
+
+  public LocalDateTime getDeletedDate() {
+    return deletedDate;
+  }
+
+  public void setDeletedDate(LocalDateTime deletedDate) {
+    this.deletedDate = deletedDate;
   }
 }

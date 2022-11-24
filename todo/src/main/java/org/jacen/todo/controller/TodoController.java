@@ -3,6 +3,7 @@ package org.jacen.todo.controller;
 import java.util.List;
 import java.util.Optional;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.jacen.todo.dto.PagedTodoDto;
 import org.jacen.todo.dto.TodoDto;
 import org.jacen.todo.model.Todo;
@@ -40,6 +41,7 @@ class APIResponse<T> {
     }
 }
 
+@Tag(name = "Todo", description = "Todo API")
 @RestController
 public class TodoController {
 
@@ -53,6 +55,12 @@ public class TodoController {
     @GetMapping("/todo/list")
     public APIResponse list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
         return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsFalse(pageable)));
+    }
+
+    // 삭제된 투두 리스트를 가져오기 (휴지통)
+    @GetMapping("/todo/trash")
+    public APIResponse trash(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsTrue(pageable)));
     }
 
     // id로 투두 세부정보 가져오기

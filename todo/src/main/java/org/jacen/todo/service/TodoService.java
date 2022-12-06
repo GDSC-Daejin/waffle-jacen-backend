@@ -13,10 +13,13 @@ public interface TodoService {
     Todo addTodo(Todo todo);
 
     // Update
-    Todo updateById(String id, Todo todo);
+    Optional<Todo> updateById(String id, Todo todo);
 
     // Delete
-    void deleteById(String id);
+    Optional<Todo> deleteById(String id);
+
+    // Recover
+    Optional<Todo> recoverById(String id);
 
     Page<Todo> findByPage(Pageable pageable);
 

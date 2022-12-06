@@ -10,6 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
+
 @Service
 public class TodoServiceImpl implements TodoService {
 
@@ -26,7 +28,7 @@ public class TodoServiceImpl implements TodoService {
 
     @Override
     public Todo addTodo(Todo todo) {
-        if(todo.getTitle() == null) throw new IllegalArgumentException("Title is required");
+        if(todo.getTitle() == null) todo.setTitle("");
         if(todo.getContent() == null) todo.setContent("");
         todo.setCreatedDate(LocalDateTime.now());
         todo.setUpdatedDate(LocalDateTime.now());
@@ -36,10 +38,12 @@ public class TodoServiceImpl implements TodoService {
     }
 
     @Override
-    public Todo updateById(String id, Todo todo) {
+    public Optional<Todo> updateById(String id, Todo todo) {
         Optional<Todo> todoOptional = repository.findById(id);
         if (todoOptional.isPresent()) {
             Todo todoFromDb = todoOptional.get();
+            if (todoFromDb.getDeleted())
+                return Optional.empty();
             if(todo.getTitle() != null) {
                 todoFromDb.setTitle(todo.getTitle());
             }
@@ -50,14 +54,39 @@ public class TodoServiceImpl implements TodoService {
                 todoFromDb.setContent(todo.getContent());
             }
             todoFromDb.setUpdatedDate(LocalDateTime.now());
-            return repository.save(todoFromDb);
+            return Optional.of(repository.save(todoFromDb));
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
-    public void deleteById(String id) {
-        repository.deleteById(id);
+    public Optional<Todo> deleteById(String id) {
+        Optional<Todo> todoOptional = repository.findById(id);
+        if (todoOptional.isPresent()) {
+            Todo todoFromDb = todoOptional.get();
+            if (todoFromDb.getDeleted()) {
+                repository.deleteById(id);
+                return Optional.of(todoFromDb);
+            }
+            todoFromDb.setDeleted(true);
+            todoFromDb.setDeletedDate(LocalDateTime.now());
+            return Optional.of(repository.save(todoFromDb));
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<Todo> recoverById(String id) {
+        Optional<Todo> todoOptional = repository.findById(id);
+        if (todoOptional.isPresent()) {
+            Todo todoFromDb = todoOptional.get();
+            if (todoFromDb.getDeleted()) {
+                todoFromDb.setDeleted(false);
+                todoFromDb.setDeletedDate(null);
+                return Optional.of(repository.save((todoFromDb)));
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

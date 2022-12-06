@@ -26,37 +26,14 @@ public class Todo {
 
 	private LocalDateTime deletedDate;
 
-	public Todo() {}
-	public Todo(String title, String content, Boolean completed, LocalDateTime createdDate, LocalDateTime updatedDate, LocalDateTime deletedDate) {
-		this.title = title;
-		this.content = content;
-		this.completed = completed;
-		this.createdDate = createdDate;
-		this.updatedDate = updatedDate;
-		this.deletedDate = deletedDate;
-	}
-
-
-	public Boolean getCompleted() {
-		return completed;
-	}
 	public void setCompleted(Boolean completed) {
 		this.completed = completed;
-	}
-	public String getContent() {
-		return content;
 	}
 	public void setContent(String content) {
 		this.content = content;
 	}
-	public String getTitle() {
-		return title;
-	}
 	public void setTitle(String title) {
 		this.title = title;
-	}
-	public String getId() {
-		return id;
 	}
 	public void setId(String id) {
 		this.id = id;
@@ -68,16 +45,8 @@ public class Todo {
 				 + "]";
 	}
 
-	public LocalDateTime getCreatedDate() {
-		return createdDate;
-	}
-
 	public void setCreatedDate(LocalDateTime createdDate) {
 		this.createdDate = createdDate;
-	}
-
-	public LocalDateTime getUpdatedDate() {
-		return updatedDate;
 	}
 
 	public void setUpdatedDate(LocalDateTime updatedDate) {
@@ -88,15 +57,39 @@ public class Todo {
 		this.deleted = deleted;
     }
 
+	public void setDeletedDate(LocalDateTime deletedDate) {
+		this.deletedDate = deletedDate;
+	}
+
+	public String getId() {
+		return this.id;
+	}
+
+	public String getTitle() {
+		return this.title;
+	}
+
+	public String getContent() {
+		return this.content;
+	}
+
+	public Boolean getCompleted() {
+		return this.completed;
+	}
+
 	public Boolean getDeleted() {
-		return deleted;
+		return this.deleted;
+	}
+
+	public LocalDateTime getCreatedDate() {
+		return this.createdDate;
+	}
+
+	public LocalDateTime getUpdatedDate() {
+		return this.updatedDate;
 	}
 
 	public LocalDateTime getDeletedDate() {
-		return deletedDate;
-	}
-
-	public void setDeletedDate(LocalDateTime deletedDate) {
-		this.deletedDate = deletedDate;
+		return this.deletedDate;
 	}
 }

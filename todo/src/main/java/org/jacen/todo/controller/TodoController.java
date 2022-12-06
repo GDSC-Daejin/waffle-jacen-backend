@@ -1,19 +1,35 @@
 package org.jacen.todo.controller;
 
-import java.util.List;
 import java.util.Optional;
-
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.jacen.todo.dto.PagedTodoDto;
-import org.jacen.todo.dto.TodoDto;
+import org.jacen.todo.dto.CreateTodoReqDto;
+import org.jacen.todo.dto.PagedTodoResDto;
+import org.jacen.todo.dto.TodoResDto;
+import org.jacen.todo.dto.UpdateTodoReqDto;
 import org.jacen.todo.model.Todo;
 import org.jacen.todo.service.TodoService;
 import org.jacen.todo.utils.ObjectMapperUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
+import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import javax.validation.Valid;
+
+/*
+    method  |  url                  |  request body             |  description
+    GET     /todo?page=0&size=10                                get todo list
+    POST    /todo                   title, content              create todo
+    PUT     /todo/{id}              title, content, completed   update todo
+    DELETE  /todo/{id}                                          delete todo
+    PUT     /todo/recover/{id}                                  recover todo
+    GET     /todo/deleted?page=0&size=10                        get deleted todo list
+    GET     /todo/completed?page=0&size=10                      get completed todo list
+ */
 
 class APIResponse<T> {
     private Boolean success;
@@ -43,6 +59,8 @@ class APIResponse<T> {
 
 @Tag(name = "Todo", description = "Todo API")
 @RestController
+@RequestMapping("/todo")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TodoController {
 
     private final TodoService repository;
@@ -52,55 +70,115 @@ public class TodoController {
     }
 
     // 투두 리스트를 가져오기
-    @GetMapping("/todo/list")
-    public APIResponse list(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsFalse(pageable)));
+    @GetMapping("")
+    @Operation(summary = "todo list 가져오기", description = "삭제되지 않은 todo list를 가져옵니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+    })
+    public APIResponse<PagedTodoResDto> list(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        PagedTodoResDto pagedTodos = new PagedTodoResDto(repository.findByDeletedIsFalse(pageable));
+        return new APIResponse<>(true, pagedTodos);
     }
 
     // 삭제된 투두 리스트를 가져오기 (휴지통)
-    @GetMapping("/todo/trash")
-    public APIResponse trash(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse(true, new PagedTodoDto(repository.findByDeletedIsTrue(pageable)));
+    @GetMapping("/trash")
+    @Operation(summary = "삭제된 todo list 가져오기", description = "임시로 삭제된 todo list를 가져옵니다. (deleted가 true인 todo list)")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+    })
+    public APIResponse<PagedTodoResDto> trash(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return new APIResponse<>(true, new PagedTodoResDto(repository.findByDeletedIsTrue(pageable)));
     }
 
     // id로 투두 세부정보 가져오기
-    @GetMapping("/todo/{id}")
-    public APIResponse getTodoById(@PathVariable String id) {
+    @GetMapping("/{id}")
+    @Operation(summary = "todo 세부정보 가져오기", description = "id로 todo 세부정보를 가져옵니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "해당 id와 일치하는 todo가 없음"),
+    })
+    public ResponseEntity<APIResponse<TodoResDto>> getTodoById(@PathVariable String id) {
         Optional<Todo> todo = repository.findById(id);
-        return todo.map(value -> new APIResponse(true, ObjectMapperUtils.map(value, TodoDto.class)))
-                .orElseGet(() -> new APIResponse(false, null));
+        return todo.map(value ->
+                        ResponseEntity.ok(new APIResponse<>(true, ObjectMapperUtils.map(value, TodoResDto.class)))
+                )
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new APIResponse<>(false, null))
+                );
     }
 
     // 투두 추가
-    @PostMapping("/todo")
-    public APIResponse<Object> postMethodName(@RequestBody TodoDto todo) {
-        Todo todoEntity = ObjectMapperUtils.map(todo, Todo.class);
-        System.out.println(todoEntity);
-        return new APIResponse<>(true, ObjectMapperUtils.map(repository.addTodo(todoEntity), TodoDto.class));
+    @PostMapping("")
+    @Operation(summary = "새 todo 추가하기", description = "새 todo를 추가합니다.")
+    public ResponseEntity<APIResponse<TodoResDto>> addTodo(@Valid @RequestBody CreateTodoReqDto todo) {
+        Todo newTodo = repository.addTodo(ObjectMapperUtils.map(todo, Todo.class));
+        return ResponseEntity.ok(new APIResponse<>(true, ObjectMapperUtils.map(newTodo, TodoResDto.class)));
     }
 
     // 투두 수정
-    @PutMapping("/todo/{id}")
-    public APIResponse updateTodoById(@PathVariable String id, @RequestBody TodoDto todo) {
-        try {
-            todo.setId(id);
-            Todo entity = ObjectMapperUtils.map(todo, Todo.class);
-            System.out.println(entity);
-            return new APIResponse(true, ObjectMapperUtils.map(repository.updateById(id, entity), TodoDto.class));
-        } catch (Exception e) {
-            return new APIResponse(false, null);
-        }
+    @PutMapping("/{id}")
+    @Operation(summary = "기존 todo 수정하기", description = "id로 기존 todo를 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "해당 id와 일치하는 todo가 없음"),
+    })
+    public ResponseEntity<APIResponse<TodoResDto>> updateTodoById(@PathVariable String id, @RequestBody @Valid UpdateTodoReqDto todo) {
+        Todo entity = ObjectMapperUtils.map(todo, Todo.class);
+        entity.setId(id);
+        System.out.println(entity);
+        Optional<Todo> updatedTodo = repository.updateById(id, entity);
+        return updatedTodo.map(value ->
+                        ResponseEntity.ok(new APIResponse<>(true, ObjectMapperUtils.map(value, TodoResDto.class)))
+                )
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new APIResponse<>(false, null))
+                );
     }
 
     // 투두 삭제
-    @DeleteMapping("/todo/{id}")
-    public APIResponse deleteTodoById(@PathVariable String id) {
-        try {
-            repository.deleteById(id);
-            return new APIResponse(true, null);
-        } catch (Exception e) {
-            System.out.println(e);
-            return new APIResponse(false, null);
-        }
+    @DeleteMapping("/{id}")
+    @Operation(summary = "todo 삭제하기", description = "id로 todo를 삭제합니다. deleted가 false인 경우, true로 변경합니다. true인 경우, 완전히 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "해당 id와 일치하는 todo가 없음"),
+    })
+    public ResponseEntity<APIResponse<TodoResDto>> deleteTodoById(@PathVariable String id) {
+        Optional<Todo> deletedTodo = repository.deleteById(id);
+        return deletedTodo.map(value ->
+                        ResponseEntity.ok(new APIResponse<>(true, ObjectMapperUtils.map(value, TodoResDto.class)))
+                )
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new APIResponse<>(false, null))
+                );
     }
+
+    // 투두 삭제취소
+    @PutMapping("/recover/{id}")
+    @Operation(summary = "todo 삭제취소하기", description = "id로 todo를 삭제를 취소합니다. deleted가 true인 경우, false로 변경합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "성공"),
+            @ApiResponse(responseCode = "400", description = "해당 id와 일치하는 todo가 없음"),
+    })
+    public ResponseEntity<APIResponse<TodoResDto>> recoverTodoById(@PathVariable String id) {
+        Optional<Todo> todo = repository.recoverById(id);
+        return todo.map(value ->
+                        ResponseEntity.ok().body(new APIResponse<>(true, ObjectMapperUtils.map(value, TodoResDto.class)))
+                )
+                .orElseGet(() ->
+                        ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new APIResponse<>(false, null))
+                );
+    }
+
+    // @ResponseStatus(HttpStatus.BAD_REQUEST)
+    // @ExceptionHandler(MethodArgumentNotValidException.class)
+    // public Map<String, String> handleValidationExceptions(
+    //         MethodArgumentNotValidException ex) {
+    //     Map<String, String> errors = new HashMap<>();
+    //     ex.getBindingResult().getAllErrors().forEach((error) -> {
+    //         String fieldName = ((FieldError) error).getField();
+    //         String errorMessage = error.getDefaultMessage();
+    //         errors.put(fieldName, errorMessage);
+    //     });
+    //     return errors;
+    // }
 }

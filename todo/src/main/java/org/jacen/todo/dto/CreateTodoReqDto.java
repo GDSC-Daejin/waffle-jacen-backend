@@ -1,9 +1,6 @@
 package org.jacen.todo.dto;
 
 
-import org.jacen.todo.model.Todo;
-
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 public class CreateTodoReqDto {

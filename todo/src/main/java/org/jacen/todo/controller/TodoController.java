@@ -2,6 +2,8 @@ package org.jacen.todo.controller;
 
 import java.util.Optional;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -11,9 +13,11 @@ import org.jacen.todo.dto.TodoResDto;
 import org.jacen.todo.dto.UpdateTodoReqDto;
 import org.jacen.todo.model.Todo;
 import org.jacen.todo.service.TodoService;
+import org.jacen.todo.types.APIResponse;
 import org.jacen.todo.utils.ObjectMapperUtils;
 import org.springdoc.api.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,31 +35,6 @@ import javax.validation.Valid;
     GET     /todo/completed?page=0&size=10                      get completed todo list
  */
 
-class APIResponse<T> {
-    private Boolean success;
-    private T data;
-
-    public APIResponse(Boolean success, T data) {
-        this.success = success;
-        this.data = data;
-    }
-
-    public Boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(Boolean success) {
-        this.success = success;
-    }
-
-    public T getData() {
-        return data;
-    }
-
-    public void setData(T data) {
-        this.data = data;
-    }
-}
 
 @Tag(name = "Todo", description = "Todo API")
 @RestController
@@ -75,9 +54,9 @@ public class TodoController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
     })
-    public APIResponse<PagedTodoResDto> list(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+    public ResponseEntity<APIResponse<PagedTodoResDto>> list(@ParameterObject @PageableDefault(size = 10, sort = { "createdDate" }, direction = Sort.Direction.DESC) Pageable pageable) {
         PagedTodoResDto pagedTodos = new PagedTodoResDto(repository.findByDeletedIsFalse(pageable));
-        return new APIResponse<>(true, pagedTodos);
+        return ResponseEntity.ok(new APIResponse<>(true, pagedTodos));
     }
 
     // 삭제된 투두 리스트를 가져오기 (휴지통)
@@ -86,8 +65,8 @@ public class TodoController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "성공"),
     })
-    public APIResponse<PagedTodoResDto> trash(@ParameterObject @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        return new APIResponse<>(true, new PagedTodoResDto(repository.findByDeletedIsTrue(pageable)));
+    public ResponseEntity<APIResponse<PagedTodoResDto>> trash(@ParameterObject @PageableDefault(size = 10, sort = { "createdDate" }, direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(new APIResponse<>(true, new PagedTodoResDto(repository.findByDeletedIsTrue(pageable))));
     }
 
     // id로 투두 세부정보 가져오기
@@ -168,17 +147,4 @@ public class TodoController {
                         ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new APIResponse<>(false, null))
                 );
     }
-
-    // @ResponseStatus(HttpStatus.BAD_REQUEST)
-    // @ExceptionHandler(MethodArgumentNotValidException.class)
-    // public Map<String, String> handleValidationExceptions(
-    //         MethodArgumentNotValidException ex) {
-    //     Map<String, String> errors = new HashMap<>();
-    //     ex.getBindingResult().getAllErrors().forEach((error) -> {
-    //         String fieldName = ((FieldError) error).getField();
-    //         String errorMessage = error.getDefaultMessage();
-    //         errors.put(fieldName, errorMessage);
-    //     });
-    //     return errors;
-    // }
 }
